@@ -1,574 +1,566 @@
-import java.util.Scanner;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import javax.swing.*;
 
-public class LineGameIn4 {
-	
-	final static int roop = 7;
-	final static int roop2 = 5;
-	final static int roop3 = 8;
-	
 
-	public static void main(String[] args) 
-	{
-		while(true)
+
+
+public class LineGameIn4 extends JFrame implements KeyListener {
+	
+	GameHandler handler;
+	JTextArea textArea;
+	
+	
+	LineGameIn4()
 		{
-			String black = "●";
-			String white = "○";
-			String replay;
-			boolean gameStart = true;
-			int turn, turn3;
-			int turn2 = 1;
-			int location [][]; 
-			int loc = 0;
+			setTitle("Let's play 4 In A Line");
+			setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			setSize(300, 250);
+			setVisible(true);
+			setLocationRelativeTo(null);
+			textArea = new JTextArea();
+			textArea.setFont(new Font("Consolas", Font.PLAIN, 15));
+			textArea.addKeyListener(this); // this = LineGame
+			add(textArea);
+			textArea.setEditable(false);
 			
-			location = makeArray();
+			handler = new GameHandler(textArea);
+			new Thread(new GameThread()).start();
 			
-			while(gameStart)
+		
+		}
+	
+	public void restart()
+	{	
+		handler.initData();
+		new Thread(new GameThread()).start();
+	}
+	
+	// 게임실행
+	class GameThread implements Runnable
+	{
+		@Override
+		public void run()
+		{
+			
+			while(!handler.isGameOver())
 			{
-				
-				turn = drawBoard(black, white, turn2, location);
-				
-				System.out.println();
-				
-				
-				
-				if(loc == 0)
-				
-				{
-					turn3 = whoseTurn(black, white, turn); // 플레이어 위치
-					turn2 = fillArray(turn3, selectNum(location), location);
-					loc = whoWin(black, white, loc, location);
-									
-				}
-				
-				
-				else break;
-			
-			}
-			
-			exWinner(black, white, loc);
-			replay = getAgainMessage();
-			
-			if(replay.compareTo("n") == 0)
-				{
-					gameStart = false;
-					System.out.println();
-					System.out.print("게임을 종료합니다.");
-					System.exit(0);
-				}
-			
-			else continue;
-		}
-	
-			
-	}
-	
-	public static int[][] makeArray()
-	{
-		int location [][] = new int[6][7]; // index = 0~4, 0~6
-		
-		for(int i=0; i<roop2; i++) 
-			for (int j=0; j<roop2+1; j++)
-				
-				location[i][j] = 0;
-				
-		return location;
-	}
-	
-	public static void drawMessage()
-	{
-		int i;
-		
-		System.out.print("┌");
-		
-		for(i=0; i<24; i++)
-		{
-			System.out.print("─");
-		}
-
-		System.out.println("┐");
-		
-		System.out.print("│ ");
-		
-		printMessage();
-		
-		System.out.println(" │");
-		
-		
-		System.out.print("└");
-
-		for(i=0; i<24; i++)
-		{
-			System.out.print("─");
-		}
-		
-		System.out.print("┘");
-	}
-	
-	public static void printMessage()
-	{
-		System.out.print("Let's Play 4 In A Line"); 
-	}
-	
-	public static void makeMiddle()
-	{
-		int i;
-		for(i=0; i<6; i++)
-		{
-			System.out.print(" ");
-			
-		}
-	}
-	
-	public static int makeTurn(int player)
-	{
-		if(player == 0) player = 1; //흑이면 백으로
-		else player = 0;
-		
-		return player;
-	}
-	
-	public static int drawBoard(String black, String white, int player, int[][] location)
-	{
-		drawMessage();
-		
-		System.out.println();
-		System.out.println();		
-		
-		makeMiddle();
-		System.out.println("1 2 3 4 5 6 7"); 
-		makeMiddle();
-		
-		drawBoardTop(black, white, player, location);
-
-		
-		for(int i=0; i<roop2; i++) // 0~4 다섯번 
-		{
-			drawBoardMid(black, white, player, i, location);
-		}
-		
-		makeMiddle(); 
-		drawBoardBot(black, white, player, location); 
-		
-		return makeTurn(player);
-		
-	}
-
-	public static void drawBall(int ballcolor, String black, String white) //그 값에 맞게 다시
-	{
-		
-		if(ballcolor == 1)
-			System.out.print(black);
-		else
-			System.out.print(white);
-	}
-	
-	public static void drawBoardTop(String black, String white, int player, int[][] location)
-	{
-		int ballcolor;
-		
-		if(location[5][0] == 0)
-			System.out.print("┌");
-		else
-			{
-				ballcolor = location[5][0];
-				drawBall(ballcolor, black, white);
-			}
-			
-		
-		for(int i=0; i<roop2; i++)
-		{
-				ballcolor = location[5][i+1]; 
-				
-				if(ballcolor == 0)
-					System.out.print("─┬");
-				else 	
-				{
-					System.out.print("─");
-					drawBall(ballcolor, black, white);
-				}
-			
-					
-		}
-			
-			if(location[5][6] == 0)
-				System.out.println("─┐");
-			else 
-			{
-				ballcolor = location[5][6];
-				System.out.print("─");
-				drawBall(ballcolor, black, white);
-				System.out.println();
-			}
-		
-			
-			
-	}
-	
-	
-	public static void drawBoardMid(String black, String white, int player, int i, int[][] location)
-	{
-		
-		int ballcolor;
-		
-		if(i != 0)
-		{
-			makeMiddle();
-			if(location[i][0] == 0) // 1~5 하지만 4까지만 해야 함
-				System.out.print("├");
-			else
-			{	ballcolor = location[i][0];
-				drawBall(ballcolor, black, white);
-			}
-			
-			 for(int j=1; j<roop2+1; j++) // 5번
-				{
-				 	ballcolor = location[i][j];
-				 	
-					if(ballcolor == 0)
-						System.out.print("─┼");			
-					else 
-						{
-							System.out.print("─");
-							drawBall(ballcolor, black, white);
-						}
-						
-				}
-			
-				
-			if(i != 0 && location[i][6] == 0)
-				System.out.println("─┤");
-			else
-				{
-					ballcolor = location[i][6];
-					System.out.print("─");
-					drawBall(ballcolor, black, white);
-					System.out.println();
-					
-				}
-		}
-
-		
-	}
-	
-	public static void drawBoardBot(String black, String white, int player, int[][] location)
-	{
-			int ballcolor;
-			
-			if(location[0][0] == 0)
-				System.out.print("└");
-			else
-			{	ballcolor = location[0][0];
-				drawBall(ballcolor, black, white);
+				handler.gameTiming();
+				handler.drawAll(); // render
+				handler.gameLogic();
 				
 			}
-		
-		
-			for(int i=1; i<roop2+1; i++)
-			{
-				ballcolor = location[0][i];
-				
-				if(ballcolor == 0)
-					System.out.print("─┴");
-				else 
-					{
-						System.out.print("─");
-						drawBall(ballcolor, black, white);
-					}
-
-						
-			}		
 			
-			if(location[0][6] == 0)
-				System.out.println("─┘");
-			else 	
-			{
-				ballcolor = location[0][6];
-				System.out.print("─");
-				drawBall(ballcolor, black, white);
-				System.out.println();
-			}
-
+			handler.drawGameOver();
 			
-	}
-	
-
-	
-	public static int whoseTurn(String black, String white, int player)
-	{
-		for(int i=0; i<roop3; i++)
-		{
-			System.out.print("─");
+			
 		}
-		
-		if(player == 0)
-			{
-				System.out.print(" " + black + "'s Turn ");
-			}
-		
-		else 
-			{
-				System.out.print(" " + white + "'s Turn ");
-			}
-		
-		for(int i=0; i<roop3; i++)
-		{
-			System.out.print("─");
-		}
-		
-		System.out.println();
-		
-		return player;
+	}
+
+	public static void main(String[] args) {
+		LineGameIn4 mf = new LineGameIn4();
 
 	}
 	
-
-	
-	public static int selectNum(int[][] location) // 변수 하나 만들어 놓고 true면 selectnum false면 win 해야 함 fillarray 메인도 수정해야 함
+	@Override
+	public void keyPressed(KeyEvent e)
 	{
-		Scanner inputNum = new Scanner(System.in);
-		makeMiddle();
-		System.out.print("Select (1-7) : ");
-		int num = 0;
-		num = inputNum.nextInt();
-		System.out.println();
-		
-		return num;
-
-	}
-	
-
-	
-	public static int fillArray(int player, int num, int location[][])
-	{
-		
-		if(num != 0)
+		switch (e.getKeyCode())
 		{
-			
-			int cnt = 0;
-			
-			for(int i=6; i>0; i--) // 6 5 4 3 2 1
-			
-			{
-								
-				
-				if(cnt == 0)
-				{
-					if(location[cnt][num-1] == 1 || location[cnt][num-1] == 2)
-					{
-						cnt++;
-						continue;
-					}
-					else if(location[cnt][num-1] == 0)
-					{
-						if(player == 0)
-							{
-								location[cnt][num-1] = 1;
-								break;
-							}
-						
-						else 
-							{
-								location[cnt][num-1] = 2;								
-								break;
-							}
-					}
-				}
-				
-				else if(i != 5 && cnt !=1)
-				{
-					if(location[i][num-1] == 1 || location[i][num-1] == 2)
-					{
-						continue;
-					}
-					
-					else if(location[i][num-1] == 0)
-					{
-						if(player == 0) 
-							{
-								location[i][num-1] = 1;
-								break;
-							}
-						else 
-							{
-								location[i][num-1] = 2;								
-								break;
-							}
-					}
-				}
-				
-				else if(location[1][num-1] == 1 || location[1][num-1] == 2)
-				{
-					if(location[5][num-1] == 1 || location[5][num-1] == 2)
-						{	
-							System.out.println("더 이상 돌을 둘 수 없습니다.");
-							System.out.print("게임을 처음부터 다시 시작합니다.");
-							System.exit(0);
-							
-						}
-					else if(location[5][num-1] == 0)
-					{
-						if(player == 0) 
-							location[5][num-1] = 1;
-						else 
-							{
-								location[5][num-1] = 2;								
-								break;
-							}
-					}
-				}
-				
-				else if(cnt == 1)
-				{
-					cnt++;
-					continue;
-				}
-			
-
-	
+		case KeyEvent.VK_RIGHT:
+			handler.moveRightBall();
+			break;
+		case KeyEvent.VK_LEFT:
+			handler.moveLeftBall();
+			break;
+		case KeyEvent.VK_DOWN:
+			handler.putTheBall();
+			break;
+		case KeyEvent.VK_Y:
+			if(handler.isGameOver())
+				restart();
+			break;
+		case KeyEvent.VK_N:
+			if(handler.isGameOver())
+			{	
+				handler.saveGame();
+				System.exit(0);
 			}
 		}
-		
+	}
 
-		return player;
-		
-
+	@Override
+	public void keyTyped(KeyEvent e)
+	{
 		
 	}
 	
-	public static int whoWin(String black, String white, int loc, int location[][])
+	@Override
+	public void keyReleased(KeyEvent e)
+	{
+		
+	}
+
+}
+	
+
+class GameHandler
+{
+	private final int FLOOR = 6;
+	private final int ROOM = 13;
+	private final int SCREEN_WIDTH = 54;
+	private final int SCREEN_HEIGHT = 60;
+	private final int HEIGHT_PADDING = 3;
+	private final int WIDTH_PADDING = 1;
+	private final int BLOCK_ROOM = 15;
+	private final int BALL_READY = 6;
+	final static int INITIAL_VALUE = 0;
+
+	private int turn = INITIAL_VALUE;
+	private JTextArea text;
+	private boolean isGameOver;
+	private int win = 0;
+	private static String black = "●";
+	private static String white = "○";
+	private char[][] screen;
+	private int board[][];
+	private int winner[][];
+	private int location[]; // location = 현재 준비중인 돌의 x 좌표
+	private int score[];
+	private String previous[];
+	
+	
+	public GameHandler(JTextArea txt)
+	{
+		text = txt;
+
+		
+		screen = new char[SCREEN_HEIGHT][SCREEN_WIDTH];
+		board = new int[FLOOR][ROOM];
+		winner = new int[FLOOR][ROOM];
+		location = new int[1];
+		score = new int[2];
+		previous = new String [1];
+		score[0] = 0;
+		score[1] = 0;
+		
+		initData();
+		
+	}
+	
+	public void initData()
 	{
 		int i, j;
 		
 		
-		for(i=0; i<6; i++) //가로 
+		// board ready
+		for(i=0; i<FLOOR; i++) //6
 		{
-			for(j=0; j<4; j++)
-				if(location[i][j] != 0 && location[i][j] == location[i][j+1] && location[i][j] == location[i][j+2] && location[i][j] == location[i][j+3])
-					loc = location[i][j];
+			if(i == 0) // top
+			{
+				for(j=0; j<ROOM; j++) //13
+				{	
+					int dummy = j % 2;
+					
+					if(j == 0) board[i][j] = 2;
+					else if(j == 12) board[i][j] = 4;
+					else if(dummy == 0) board[i][j] = 3;
+					else if(dummy == 1) board[i][j] = 1;
+				}
+			}
 			
-			for(j=0; j<7; j++) //세로
-			{	
-				if(i == 5)
+			else if(i == 5) //bot
+			{
+				for(j=0; j<ROOM; j++)
 				{
-					if(location[i][j] != 0 && location[i][j] == location[i-4][j] && location[i][j] == location[i-3][j] && location[i][j] == location[i-2][j])
-						loc = location[i][j];
+					int dummy = j % 2;
+					
+					if(j == 0) board[i][j] = 8;
+					else if(j == 12) board[i][j] = 10;
+					else if(dummy == 0) board[i][j] = 9;
+					else if(dummy == 1) board[i][j] = 1;
+				}
+			}
+			
+			else // mid
+			{
+				for(j=0; j<ROOM; j++)
+				{
+					int dummy = j % 2;
+					
+					if(j == 0) board[i][j] = 5; 
+					else if(j == 12) board[i][j] = 7;
+					else if(dummy == 0) board[i][j] = 6;
+					else if(dummy == 1) board[i][j] = 1;
 				}
 				
-				if(i == 4)
-				{
-					if(location[i][j] != 0 && location[i][j] == location[i-3][j] && location[i][j] == location[i-2][j] && location[i][j] == location[i-1][j])
-						loc = location[i][j];
-				}
-				
-				if(i == 0)
-				{
-					if(location[i][j] != 0 && location[i][j] == location[i+2][j] && location[i][j] == location[i+3][j] && location[i][j] == location[i+4][j])
-						loc = location[i][j];
-				}
+			}
 			
+		}
+		
+		
+		// winner 초기화
+		for(i=0; i<FLOOR; i++)
+		{
+			for(j=0; j<ROOM; j++)
+			{
+				winner[i][j] = 0;
 			}
 		}
 		
-	
 		
-		for(i=0; i<5; i++) // 대각선 조건 다시 보기 가로세로는 되는데 이게 안 됨 이것만 고치면 끝
+		isGameOver = false;
+		location[0] = BALL_READY;
+		
+		
+		try {
+			BufferedReader in = new BufferedReader(new FileReader("previous.txt"));
+			previous[0] = in.readLine();
+			in.close();
+		}
+		
+		catch(FileNotFoundException e)
 		{
-			for(j=3; j<7; j++) // ↘
+			previous[0] = "●:0   ○:0";
+		}
+		
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		
+		clearScreen(); // 얘가 먼저 실행되어서 초기화 시키고
+		drawToScreen(HEIGHT_PADDING-1, location[0], black); // 2, 7에 얘 넣어 줌 (대기열)
+		
+	}
+	
+	public void clearScreen()
+	{
+		for(int i=0; i<SCREEN_HEIGHT; i++)
+		{
+			for(int j=0; j<SCREEN_WIDTH; j++)
+				screen[i][j] = ' ';
+			
+		}
+	}
+	
+	public void gameTiming()
+	{
+		try {
+			Thread.sleep(50);
+		}
+		
+		catch(InterruptedException ex)
+		{
+			ex.printStackTrace();
+		}
+	}
+	
+	private void drawToScreen(int y, int x, String c) 	
+	{
+	
+		for(int i=0; i<c.length(); i++) 
+			screen[y][i+x+WIDTH_PADDING] = c.charAt(i); // y = 6, x = 12 -> [6+3+12][13] c 문자열의 i 초기값부터 길이까지
+		 // "┌───CURRENT───┐".charAt(0~문자열 길이)
+	}
+	
+	private void drawToScreen(int y, int x, char c)
+	{
+		screen[y][x+WIDTH_PADDING] = c; // X + 14
+	}
+	
+	public void drawBlock() // 채워주는 역할
+	{	
+			for(int j=INITIAL_VALUE; j<BLOCK_ROOM; j++ )
+			{
+			
+				drawToScreen(HEIGHT_PADDING - 1, BLOCK_ROOM, "┌───CURRENT───┐"); // 2, 15 
+				drawToScreen(HEIGHT_PADDING, BLOCK_ROOM, "│  "+black+":"+score[0]+"   "+white+":"+score[1]+"  │");
+				drawToScreen(HEIGHT_PADDING + 1, BLOCK_ROOM, "└─────────────┘"); // 4, 15
+				drawToScreen(HEIGHT_PADDING + 3, BLOCK_ROOM, "┌───PREVIOUS──┐"); // 7, 15
+				drawToScreen(HEIGHT_PADDING + 4, BLOCK_ROOM, "│  " + previous[0] +"  │");
+				drawToScreen(HEIGHT_PADDING + 5, BLOCK_ROOM, "└─────────────┘"); // 9, 15
+			}
+			
+	}
+		
+	
+	
+
+	private void render()
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		for(int i = 0; i<SCREEN_HEIGHT; i++)
+		{
+			for(int j = 0; j<SCREEN_WIDTH; j++)
+				{
+					sb.append(screen[i][j]);
+				}
+			sb.append("\n");
+		}
+		
+		text.setText(sb.toString());
+		}
+	
+	
+	public void drawAll()
+	{
+		
+		
+		// draw board
+		for(int i=0; i<FLOOR; i++) // 0~6
+		{
+			for(int j=0; j<ROOM; j++) // 0~12
+				drawToScreen(i+HEIGHT_PADDING, j, " ─┌┬┐├┼┤└┴┘●○".charAt(board[i][j])); // b 11, w 12
+		}
+		
+		// draw current & previous
+		drawBlock();
+		// 준비열 돌
+		
+		
+		
+		drawToScreen(9, 20, " By Y.Kim");
+		render();
+	}
+	
+	
+	public void drawBall(int move) // 방향키 누를 때
+	{
+		
+		
+			if(turn == INITIAL_VALUE)
+				drawToScreen(HEIGHT_PADDING-1, move, black); // 준비열에 그려줌
+			else drawToScreen(HEIGHT_PADDING-1, move, white);
+		
+		
+	}
+	
+
+	
+	
+	public void moveRightBall()
+	{
+		
+		if(location[0] < 12) 
+		{
+			drawToScreen(HEIGHT_PADDING-1, location[0], " ");
+			location[0] = location[0] + 2;
+			
+			
+		}
+		
+		int move = location[0];
+		drawBall(move);
+	}
+	
+	public void moveLeftBall()
+	{
+		
+		if(location[0] > 0) 
+		{
+			drawToScreen(HEIGHT_PADDING-1, location[0], " ");
+			location[0] = location[0] - 2;
+		}
+		
+		int move = location[0];
+		drawBall(move);
+		
+		
+	}
+	
+
+	public void putTheBall() // 보드에 그리기 -> init으로 초기화해 준 값을 바꾸는 함수
+	{
+		
+		drawToScreen(HEIGHT_PADDING-1, location[0], " ");
+		
+		for(int i=5; i>-1; i--)
+		{
+			if(board[i][location[0]] == 11 || board[i][location[0]] == 12)
 			{
 				if(i == 0)
-				{
-					if(location[i][j] != 0 && location[i][j] == location[i+4][j-1] && location[i][j] == location[i+3][j-2] && location[i][j] == location[i+2][j-3])
-							loc = location[i][j];
-				}
-					
-				if(i == 4 || i == 3)
-				{
-					if(location[i][j] != 0 && location[i][j] == location[i-1][j-1] && location[i][j] == location[i-2][j-2] && location[i][j] == location[i-3][j-3])
-							loc = location[i][j];
-				}
-					
-					
+					System.exit(0);
+				continue;
 			}
-					
 			
-			for(j=0; j<4; j++) // ↙
+			
+			
+			else 
 			{
-				
-				if(i == 0)
+				if(turn == INITIAL_VALUE)
 				{
-					if(location[i][j] !=0 && location[i][j] == location[i+4][j+1] && location[i][j] == location[i+3][j+2] && location[i][j] == location[i+2][j+3])
-						loc = location[i][j];
+					board[i][location[0]] = 11;
+					winner[i][location[0]] = 1;
+					break;
 				}
-				
-				if(i == 4)
+				else 
 				{
-					if(location[i][j] !=0 && location[i][j] == location[i-1][j+1] && location[i][j] == location[i-2][j+2] && location[i][j] == location[i-3][j+3])
-						loc = location[i][j];
+					board[i][location[0]] = 12;
+					winner[i][location[0]] = 2;
+					break;
 				}
-				
-				if(i == 3)
-				{
-					if(location[i][j] !=0 && location[i][j] == location[i-1][j+1] && location[i][j] == location[i-2][j+2] && location[i][j] == location[i+2][j+3])
-						loc = location[i][j];
-				}
-				
 			}
-		}
-		
-		
-		return loc;
-
-		
-	}
-	
-	public static void exWinner(String black, String white, int loc)
-	{
-
-		
-		if(loc == 1)
-			winMessage(black, white, 1);
 			
-		else if(loc == 2)
-			winMessage(black, white, 2);
+		}
 		
-
-
+		location[0] = BALL_READY;
+		
+		if(turn == INITIAL_VALUE)
+		{
+			turn = INITIAL_VALUE + 1;
+			drawToScreen(HEIGHT_PADDING-1, location[0], white);
+		}
+		else 
+		{
+			turn = INITIAL_VALUE;
+			drawToScreen(HEIGHT_PADDING-1, location[0], black);
+		}
+		
+		 
+		
+			
 	}
 
-	public static void winMessage(String black, String white, int winner)
+	public boolean isGameOver()
 	{
-		for(int i=0; i<roop; i++)
-		{
-			System.out.print("〓");
-		}
-		
-		if(winner == 1)
-			System.out.print(" " + black + " WINS! ");
-		else
-			System.out.print(" " + white + " WINS! ");
-		
-		for(int i=0; i<roop; i++)
-		{
-			System.out.print("〓");
-		}
-		
-		System.out.println("\n");
+		return isGameOver;
 	}
 	
-	public static String getAgainMessage()
+
+	
+	public void gameLogic()
 	{
-		Scanner question = new Scanner(System.in);
-		makeMiddle();
-		System.out.print("Play Again? (y/n) ");
-		String reply;
-		reply = question.next();
+		for(int i = 0; i<FLOOR; i++)
+		{
+			for(int j = 0; j<ROOM; j++)
+			{
+				if(j % 2 == 0)
+				{
+					if(winner[i][j] != 0)
+					{
+						//가로
+						if(j < 7 && winner[i][j] == winner[i][j+2] && winner[i][j] == winner[i][j+4] && winner[i][j] == winner[i][j+6])
+						{
+							if(winner[i][j] == 1)
+							{
+								win = 0;
+								score[0] = score[0] + 1;
+							}
+							else
+							{
+								win = 1;
+								score[1] = score[1] + 1;
+							}
+							
+							
+							isGameOver = true;
+							
+						}
+						
+						//세로
+						if(i > 2 && winner[i][j] == winner[i-1][j] && winner[i][j] == winner[i-2][j] && winner[i][j] == winner[i-3][j])
+						{
+							if(winner[i][j] == 1)
+							{
+								win = 0;
+								score[0] = score[0] + 1;
+							}
+							else 
+							{
+								win = 1;
+								score[1] = score[1] + 1;
+							}
+							
+							isGameOver = true;
+							
+						}
+						
+						// 대각선 ↗
+						if(i > 2 && j < 7 && winner[i][j] == winner[i-1][j+2] && winner[i][j] == winner[i-2][j+4] && winner[i][j] == winner[i-3][j+6])
+						{
+							if(winner[i][j] == 1)
+							{
+								win = 0;
+								score[0] = score[0] + 1;
+							}
+							else 
+							{
+								win = 1;
+								score[1] = score[1] + 1;
+							}
+							
+							isGameOver = true;
+						}
+						
+						// 대각선 ↘
+						if(i < 3 && j < 7 && winner[i][j] == winner[i+1][j+2] && winner[i][j] == winner[i+2][j+4] && winner[i][j] == winner[i+3][j+6])
+						{
+							if(winner[i][j] == 1)
+							{
+								win = 0;
+								score[0] = score[0] + 1;
+							}
+							else 
+							{
+								win = 1;
+								score[1] = score[1] + 1;
+							}
+							
+							isGameOver = true;
+						}
+					}
+					
+				}
+				
+				else continue;
+			}
+			
+		}
+	}
+	
+	public void drawGameOver()
+	{
+		String player = white;
 		
-		return reply;
+		if(win == 0)
+			player = black;
+		
+		drawToScreen(HEIGHT_PADDING+2, BLOCK_ROOM, "┏━━━━━━━━━━━━━━┓");
+		drawToScreen(HEIGHT_PADDING+3, BLOCK_ROOM, "┃   "+player+" WINS!    ┃");
+		drawToScreen(HEIGHT_PADDING+4, BLOCK_ROOM, "┃              ┃");
+		drawToScreen(HEIGHT_PADDING+5, BLOCK_ROOM, "┃ AGAIN? (Y/N) ┃");
+		drawToScreen(HEIGHT_PADDING+6, BLOCK_ROOM, "┗━━━━━━━━━━━━━━┛");
+		
+		for(int j=INITIAL_VALUE; j<BLOCK_ROOM; j++)
+		{
+		
+			drawToScreen(HEIGHT_PADDING - 1, BLOCK_ROOM, "┌───CURRENT───┐"); // 2, 15 
+			drawToScreen(HEIGHT_PADDING, BLOCK_ROOM, "│  "+black+":"+score[0]+"   "+white+":"+score[1]+"  │");
+			drawToScreen(HEIGHT_PADDING + 1, BLOCK_ROOM, "└─────────────┘"); // 4, 15
+		}
+		// 종료 전 현재 스코어 파일에 저장
 		
 		
+		
+		render();
+	}
+	
+	public void saveGame()
+	{
+		BufferedWriter out;
+		try {
+			out = new BufferedWriter(new FileWriter("previous.txt"));
+			out.write(black + ":" + score[0] + "   "+ white + ":" + score[1]);
+			out.close();
+		}
+		
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 }
-
-
-
